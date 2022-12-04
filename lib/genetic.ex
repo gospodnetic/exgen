@@ -21,9 +21,21 @@ defmodule Genetic do
   end
 
   def select(population, opts \\ []) do
-    population
-    |> Enum.chunk_every(2)
-    |> Enum.map(&List.to_tuple(&1))
+    select_fn = Keyword.get(opts, :selection_type, Toolbox.Selection.elite/2)
+    slect_rate = Keyword.get(opts, :selection_rate, 0.8)
+
+    n = round(length(population) * selection_rate)
+    n = if rem(n, 2) == 0, do: n, else: n+1
+    parents =
+      select_fn
+        |> apply([population, n])
+
+    leftover =
+      population
+      |> MapSet.new()
+      |> MapSet.difference(MapSet.new(parents))
+
+    {parents, MapSet.to_list(leftover)}
   end
 
   def crossover(population, opts \\ []) do
@@ -68,9 +80,9 @@ defmodule Genetic do
     if problem.terminate?(population, generation) do
       best
     else
-      population
-      |> select(opts)
-      |> crossover(opts)
+      {parents, leftover} = select(population, opts)
+      children = crossover(parents, opts)
+      children ++ leftover
       |> mutation(opts)
       |> evolve(problem, generation+1, opts)
     end
