@@ -13,8 +13,8 @@ defmodule Toolbox.Selection do
     0..n-1
     |> Enum.map(fn _ ->
       population
-      |> Enum.take_random(tournsize)
-      |> Enum.max_by(&(^1.fitness))
+      |> Enum.take_random(tourn_size)
+      |> Enum.max_by(&(&1.fitness))
     end)
   end
 
@@ -34,6 +34,7 @@ defmodule Toolbox.Selection do
             {:halt, x}
           else
             {:cont, x.fitness + sum}
+          end
         end)
       end)
   end
@@ -51,5 +52,6 @@ defmodule Toolbox.Selection do
         |> Enum.take_random(tourn_size)
         |> Enum.max_by(&(&1.fitness))
       tournament_helper(population, n, tourn_size, MapSet.put(selected, chosen))
+    end
   end
 end

@@ -7,6 +7,7 @@ defmodule NQueens do
     %Chromosome{genes: genes, size: 8}
   end
 
+  @impl true
   def fitness_function(chromosome) do
     diag_clashes =
       for i <- 0..7, j <- 0..7 do
@@ -14,10 +15,28 @@ defmodule NQueens do
           # horizontal distance
           dx = abs(i - j)
           # vertical distance
-          abs()
+          dy = abs(
+            chromosome.genes
+            |> Enum.at(i)
+            |> Kernel.-(Enum.at(chromosome.genes, j)))
+          if dx == dy do
+            1
+          else
+            0
+          end
         else
           # The same field
           0
+        end
       end
+    length(Enum.uniq(chromosome.genes)) - Enum.sum(diag_clashes)
+  end
+
+  @impl true
+  def terminate?(population, _generation) do
+    Enum.max_by(population, &NQueens.fitness_function/1).fitness == 8
   end
 end
+
+soln = Genetic.run(NQueens)
+IO.inspect(soln)

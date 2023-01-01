@@ -5,7 +5,7 @@ defmodule Genetic do
   alias Types.Chromosome
 
   def initialize(genotype, opts \\ []) do
-    population_size = Keyword.get(opts, :population_size, 100)
+    population_size = Keyword.get(opts, :population_size, 2)
     for _ <- 1..population_size, do: genotype.()
   end
 
@@ -21,8 +21,8 @@ defmodule Genetic do
   end
 
   def select(population, opts \\ []) do
-    select_fn = Keyword.get(opts, :selection_type, Toolbox.Selection.elite/2)
-    slect_rate = Keyword.get(opts, :selection_rate, 0.8)
+    select_fn = Keyword.get(opts, :selection_type, &Toolbox.Selection.elite/2)
+    selection_rate = Keyword.get(opts, :selection_rate, 0.8)
 
     n = round(length(population) * selection_rate)
     n = if rem(n, 2) == 0, do: n, else: n+1
@@ -30,18 +30,22 @@ defmodule Genetic do
       select_fn
         |> apply([population, n])
 
-    leftover =
-      population
-      |> MapSet.new()
-      |> MapSet.difference(MapSet.new(parents))
+      leftover =
+        population
+        |> MapSet.new()
+        |> MapSet.difference(MapSet.new(parents))
+        |> MapSet.to_list()
 
-    {parents, MapSet.to_list(leftover)}
+    {parents, leftover}
+    |> IO.inspect(label: "select")
   end
 
   def crossover(population, opts \\ []) do
     population
+    |> IO.inspect(population, label: "population")
     |> Enum.reduce([],
       fn {p1, p2}, acc ->
+        IO.inspect("here")
         cx_point = :rand.uniform(length(p1.genes))
         {{h1, t1}, {h2, t2}} =
           {Enum.split(p1.genes, cx_point),
